@@ -71,7 +71,7 @@ const FinanceChart = () => {
     <div className="bg-white rounded-lg p-4 h-full">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-lg font-semibold">Finance Report</h1>
-        <Image src="/moreDark.png" alt="More Options" width={20} height={20} />
+        <Image src="/moreDark.png" alt="More Options" width={20} height={20} priority/>
       </div>
       <div className="h-[400px]">
         <ResponsiveContainer width="100%" height="90%">
@@ -84,9 +84,7 @@ const FinanceChart = () => {
               bottom: 5,
             }}
           >
-            {/* Add gridlines for better visual separation */}
             <CartesianGrid strokeDasharray="3 2" />
-            {/* X and Y axis */}
             <XAxis dataKey="name" 
             axisLine={false}
             tick={{ fill: "#d1d5db" }}
@@ -100,10 +98,8 @@ const FinanceChart = () => {
              tickLine={false}
              tickMargin={10}
              />
-            {/* Tooltip and Legend */}
             <Tooltip />
-            <Legend verticalAlign="top" height={36} /> {/* Legend moved to top */}
-            {/* Income and Expense lines */}
+            <Legend verticalAlign="top" height={36} /> 
             <Line type="monotone" dataKey="income" stroke="rgb(195 235 250 / var(--tw-bg-opacity)" activeDot={{ r: 8 }} name="Income" />
             <Line type="monotone" dataKey="expense" stroke="rgb(250 226 124 / var(--tw-bg-opacity)" name="Expense" />
           </LineChart>
