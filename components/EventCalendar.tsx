@@ -7,7 +7,6 @@ import 'react-calendar/dist/Calendar.css';
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
 
-// Sample events array
 const events = [
   {
     id: 1,
@@ -57,26 +56,25 @@ const EventCalendar = () => {
         <h1 className="text-xl font-semibold my-4">Events</h1>
         <Image src="/moreDark.png" alt="View more" width={20} height={20} />
       </div>
-      <div className="flex flex-col gap-4 h-72 overflow-y-auto">
-        {events.slice(0, 4).map((event) => (
+      <div className="flex flex-col gap-4 h-72 overflow-y-auto scrollbar-custom"> 
+        {events.map((event) => (
           <div
             className="p-5 rounded-md border-2 border-gray-100 border-t-4 odd:border-t-Sky even:border-t-Purple"
             key={event.id}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col lg:flex-row items-center justify-between">
               <h1 className="font-semibold text-gray-600">{event.title}</h1>
               <span className="text-gray-300 text-xs">{event.time}</span>
             </div>
             <p className="mt-2 text-gray-400 text-sm">{event.description}</p>
           </div>
         ))}
-        {/* Additional event for scrollbar demonstration */}
+      </div>
         {events.length > 4 && (
           <div className="text-center text-gray-500 text-sm mt-2">
             Scroll for more events...
           </div>
         )}
-      </div>
     </div>
   );
 }
