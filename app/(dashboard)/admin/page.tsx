@@ -29,7 +29,7 @@ const AdminPage = () => {
                 <FinanceChart />
             </div>
         </div>
-        <div className="w-full md:w-1/3 flex flex-col gap-4 h-full">
+        <div className="w-full md:w-1/3 flex flex-col gap-4 ">
             <EventCalendar />
             <Announcements />
         </div>
