@@ -1,6 +1,8 @@
+import FormModal from '@/components/FormModal';
 import Pagination from '@/components/Pagination';
 import Table from '@/components/Table';
 import TableSearch from '@/components/TableSearch';
+import { role } from '@/lib/data';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
@@ -160,9 +162,9 @@ const page = () => {
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-Yellow hover:bg-yellow-300">
               <Image src="/sort.png" alt="Sort" width={14} height={14} />
             </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-full bg-Yellow hover:bg-yellow-300">
-              +
-            </button>
+           {
+            role === 'admin' && <FormModal type='create' table='student' />
+           }
           </div>
         </div>
       </div>
