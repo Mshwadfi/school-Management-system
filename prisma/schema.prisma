@@ -3,17 +3,17 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model Admin {
-  id       String @id
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
   username String @unique
 }
 
 model Student {
-  id          String       @id
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
   username    String       @unique
   name        String
   surname     String
@@ -24,37 +24,38 @@ model Student {
   bloodType   String
   sex         UserSex
   createdAt   DateTime     @default(now())
-  parentId    String
-  parent      Parent       @relation(fields: [parentId], references: [id])
-  classId     Int
-  class       Class        @relation(fields: [classId], references: [id])
-  gradeId     Int
-  grade       Grade        @relation(fields: [gradeId], references: [id])
+  parentId    String       @db.ObjectId
+  parent      Parent?      @relation("StudentParent", fields: [parentId], references: [id])
+  classId     String       @db.ObjectId
+  class       Class?       @relation("StudentClass", fields: [classId], references: [id])
+  gradeId     String       @db.ObjectId
+  grade       Grade?       @relation("StudentGrade", fields: [gradeId], references: [id])
   attendances Attendance[]
   results     Result[]
   birthday    DateTime
 }
 
 model Teacher {
-  id        String    @id
-  username  String    @unique
-  name      String
-  surname   String
-  email     String?   @unique
-  phone     String?   @unique
-  address   String
-  img       String?
-  bloodType String
-  sex       UserSex
-  createdAt DateTime  @default(now())
-  subjects  Subject[]
-  lessons   Lesson[]
-  classes   Class[]
-  birthday  DateTime
+  id                String           @id @default(auto()) @map("_id") @db.ObjectId
+  username          String           @unique
+  name              String
+  surname           String
+  email             String?          @unique
+  phone             String?          @unique
+  address           String
+  img               String?
+  bloodType         String
+  sex               UserSex
+  createdAt         DateTime         @default(now())
+  lessons           Lesson[]         @relation("TeacherLessons")
+  birthday          DateTime
+  supervisedClasses Class[]          @relation("ClassSupervisor") // Add this field
+  teacherClasses    TeacherClass[]
+  teacherSubjects   TeacherSubject[]
 }
 
 model Parent {
-  id        String    @id
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
   username  String    @unique
   name      String
   surname   String
@@ -62,121 +63,135 @@ model Parent {
   phone     String    @unique
   address   String
   createdAt DateTime  @default(now())
-  students  Student[]
+  students  Student[] @relation("StudentParent")
 }
 
 model Grade {
-  id    Int @id @default(autoincrement())
-  level Int @unique
-
-  students Student[]
-  classess Class[]
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  level    Int       @unique
+  students Student[] @relation("StudentGrade")
+  classes  Class[]   @relation("GradeClasses")
 }
 
 model Class {
-  id       Int    @id @default(autoincrement())
-  name     String @unique
-  capacity Int
-
-  supervisorId  String?
-  supervisor    Teacher?       @relation(fields: [supervisorId], references: [id])
-  lessons       Lesson[]
-  students      Student[]
-  gradeId       Int
-  grade         Grade          @relation(fields: [gradeId], references: [id])
-  events        Event[]
-  announcements Announcement[]
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  name           String         @unique
+  capacity       Int
+  supervisorId   String?        @db.ObjectId
+  supervisor     Teacher?       @relation("ClassSupervisor", fields: [supervisorId], references: [id]) // Supervisor field
+  lessons        Lesson[]       @relation("ClassLessons")
+  students       Student[]      @relation("StudentClass")
+  gradeId        String         @db.ObjectId
+  grade          Grade?         @relation("GradeClasses", fields: [gradeId], references: [id])
+  events         Event[]        @relation("ClassEvents")
+  announcements  Announcement[] @relation("ClassAnnouncements")
+  teacherClasses TeacherClass[]
 }
 
 model Subject {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique
-  teachers Teacher[]
-  lessons  Lesson[]
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  name            String           @unique
+  lessons         Lesson[]         @relation("SubjectLessons")
+  // Relation fields for many-to-many
+  teacherSubjects TeacherSubject[]
 }
 
 model Lesson {
-  id        Int      @id @default(autoincrement())
-  name      String
-  day       Day
-  startTime DateTime
-  endTime   DateTime
-
-  subjectId   Int
-  subject     Subject      @relation(fields: [subjectId], references: [id])
-  classId     Int
-  class       Class        @relation(fields: [classId], references: [id])
-  teacherId   String
-  teacher     Teacher      @relation(fields: [teacherId], references: [id])
-  exams       Exam[]
-  assignments Assignment[]
-  attendances Attendance[]
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  day         Day
+  startTime   DateTime
+  endTime     DateTime
+  subjectId   String       @db.ObjectId
+  subject     Subject      @relation("SubjectLessons", fields: [subjectId], references: [id])
+  classId     String       @db.ObjectId
+  class       Class        @relation("ClassLessons", fields: [classId], references: [id])
+  teacherId   String?      @db.ObjectId
+  teacher     Teacher?     @relation("TeacherLessons", fields: [teacherId], references: [id])
+  exams       Exam[]       @relation("LessonExams")
+  assignments Assignment[] @relation("LessonAssignments")
+  attendances Attendance[] @relation("LessonAttendances")
 }
 
 model Exam {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   title     String
   startTime DateTime
   endTime   DateTime
-
-  lessonId Int
-  lesson   Lesson   @relation(fields: [lessonId], references: [id])
-  results  Result[]
+  lessonId  String   @db.ObjectId
+  lesson    Lesson   @relation("LessonExams", fields: [lessonId], references: [id])
+  results   Result[] @relation("ExamResults")
 }
 
 model Assignment {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   title     String
   startDate DateTime
   dueDate   DateTime
-
-  lessonId Int
-  lesson   Lesson   @relation(fields: [lessonId], references: [id])
-  results  Result[]
+  lessonId  String   @db.ObjectId
+  lesson    Lesson   @relation("LessonAssignments", fields: [lessonId], references: [id])
+  results   Result[] @relation("AssignmentResults")
 }
 
 model Result {
-  id    Int @id @default(autoincrement())
-  score Int
-
-  examId       Int?
-  exam         Exam?       @relation(fields: [examId], references: [id])
-  assignmentId Int?
-  assignment   Assignment? @relation(fields: [assignmentId], references: [id])
-  studentId    String
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  score        Int
+  examId       String?     @db.ObjectId
+  exam         Exam?       @relation("ExamResults", fields: [examId], references: [id])
+  assignmentId String?     @db.ObjectId
+  assignment   Assignment? @relation("AssignmentResults", fields: [assignmentId], references: [id])
+  studentId    String      @db.ObjectId
   student      Student     @relation(fields: [studentId], references: [id])
 }
 
 model Attendance {
-  id      Int      @id @default(autoincrement())
-  date    DateTime
-  present Boolean
-
-  studentId String
-  student   Student @relation(fields: [studentId], references: [id])
-  lessonId  Int
-  lesson    Lesson  @relation(fields: [lessonId], references: [id])
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  date      DateTime
+  present   Boolean
+  studentId String   @db.ObjectId
+  student   Student  @relation(fields: [studentId], references: [id])
+  lessonId  String   @db.ObjectId
+  lesson    Lesson   @relation("LessonAttendances", fields: [lessonId], references: [id])
 }
 
 model Event {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String
   startTime   DateTime
   endTime     DateTime
-
-  classId Int?
-  class   Class? @relation(fields: [classId], references: [id])
+  classId     String?  @db.ObjectId
+  class       Class?   @relation("ClassEvents", fields: [classId], references: [id])
 }
 
 model Announcement {
-  id          Int      @id @default(autoincrement())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String
   date        DateTime
+  classId     String?  @db.ObjectId
+  class       Class?   @relation("ClassAnnouncements", fields: [classId], references: [id])
+}
 
-  classId Int?
-  class   Class? @relation(fields: [classId], references: [id])
+// Join tables for many-to-many relations
+model TeacherClass {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  teacherId String  @db.ObjectId
+  classId   String  @db.ObjectId
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+  class     Class   @relation(fields: [classId], references: [id])
+
+  @@unique([teacherId, classId])
+}
+
+model TeacherSubject {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  teacherId String  @db.ObjectId
+  subjectId String  @db.ObjectId
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+  subject   Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([teacherId, subjectId])
 }
 
 enum UserSex {
@@ -185,10 +200,9 @@ enum UserSex {
 }
 
 enum Day {
-  SATURDAY
-  SUNDAY
   MONDAY
   TUESDAY
   WEDNESDAY
   THURSDAY
+  FRIDAY
 }
