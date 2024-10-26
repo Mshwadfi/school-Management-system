@@ -64,7 +64,11 @@ type TeacherList = Teacher & {subjects:Subject[]} & {classes:Class[]};
                 },
               };
               break;
-            // Add more cases as needed
+              case "search":
+                query.name = { contains: value, mode: "insensitive" };
+                break;
+              default:
+                break;
           }
         }
       }
@@ -102,6 +106,7 @@ type TeacherList = Teacher & {subjects:Subject[]} & {classes:Class[]};
   
     console.log(teachersData);
     console.log(searchParams, 'page');
+    console.log(query, 'query')
   
     const customTableRow = (item: TeacherList) => (
       <tr key={item.id} className="bg-white odd:bg-slate-50 hover:bg-YellowLight transition duration-150">
