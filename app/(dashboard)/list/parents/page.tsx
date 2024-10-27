@@ -1,54 +1,14 @@
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
+import { ITEM_PER_PAGE } from "@/lib/constants";
+import { role } from "@/lib/data";
+import prisma from "@/lib/prisma";
+import { Parent, Prisma, Student } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 
-type Parent = {
-  id: number;
-  name: string;
-  phone: string;
-  address: string;
-  students: string[];
-};
-export const parentsData:Parent[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    students: ["Alice Doe", "Bob Doe"],
-    phone: "123-456-7890",
-    address: "123 Main St, Cityville",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    students: ["Charlie Smith"],
-    phone: "234-567-8901",
-    address: "456 Oak St, Townsville",
-  },
-  {
-    id: 3,
-    name: "Emily Johnson",
-    students: ["David Johnson", "Eva Johnson"],
-    phone: "345-678-9012",
-    address: "789 Pine St, Villagetown",
-  },
-  {
-    id: 4,
-    name: "Michael Brown",
-    students: ["Fiona Brown"],
-    phone: "456-789-0123",
-    address: "101 Maple St, Hamletown",
-  },
-  {
-    id: 5,
-    name: "Sarah Davis",
-    students: ["George Davis", "Hannah Davis"],
-    phone: "567-890-1234",
-    address: "202 Birch St, Boroughsville",
-  },
-];
-
+type ParentList = Parent & { students: Student[] };
 
 const columns = [
   {
@@ -70,13 +30,56 @@ const columns = [
     accessor: "address",
     className: "hidden lg:table-cell",
   },
-  {
-    header: "Actions",
-    accessor: "action",
-  },
+  ...(role === "admin"
+    ? [
+        {
+          header: "Actions",
+          accessor: "action",
+        },
+      ]
+    : []),
 ];
+const ParentListPage = async({ searchParams }: { searchParams: { [key: string]: string } | undefined }) => {
+ 
+  const {page = '1', ...queryParams} = searchParams;
+  const query: Prisma.ParentWhereInput = {};
+  const currentPage = parseInt(page, 10) || 1; 
+    const skip = ITEM_PER_PAGE * (currentPage - 1);
+    
+    if (queryParams) {
+      for (const [key, value] of Object.entries(queryParams)) {
+        if (value !== undefined) {
+          switch (key) {
+            case "search":
+              query.name = { contains: value, mode: "insensitive" };
+              break;
+            default:
+              break;
+          }
+        }
+      }
+    }
 
-const ParentListPage = () => {
+    const [parentsData, parentsCount] = await prisma.$transaction([
+      prisma.parent.findMany({
+        where: query,
+        include: {
+          students:true,
+        },
+        take: ITEM_PER_PAGE,
+        skip,
+      }),
+      prisma.parent.count({ where: query }),
+    ]);
+    parentsData.forEach(parent => {
+      console.log('Parent:', parent);
+      parent.students.forEach(student => {
+        console.log('Student:', student);
+      });
+    });
+    
+
+ 
   const customTableRow = (item: Parent) => (
     <tr
       key={item.id}
@@ -85,10 +88,10 @@ const ParentListPage = () => {
       <td className="flex items-center gap-4 p-4">
         <div className="flex flex-col">
           <h3 className="font-semibold">{item.name}</h3>
-          <p className="text-xs text-gray-500">{/* Email can be added if needed */}</p>
+          <p className="text-xs text-gray-500">{item.email}</p>
         </div>
       </td>
-      <td className="hidden md:table-cell">{item.students.join(", ")}</td>
+      <td className="hidden md:table-cell">{item.students.map((student) => student.name).join(",")}</td>
       <td className="hidden lg:table-cell">{item.phone}</td>
       <td className="hidden lg:table-cell">{item.address}</td>
       <td>
@@ -128,7 +131,7 @@ const ParentListPage = () => {
       {/* LIST */}
       <Table columns={columns} customTableRow={customTableRow} data={parentsData} />
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination initialPage={page} count={parentsCount}/>
     </div>
   );
 };
