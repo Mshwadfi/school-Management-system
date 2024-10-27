@@ -9,7 +9,6 @@ import Image from "next/image";
 import Link from "next/link";
 
 type ParentList = Parent & { students: Student[] };
-
 const columns = [
   {
     header: "Info",
@@ -39,6 +38,7 @@ const columns = [
       ]
     : []),
 ];
+
 const ParentListPage = async({ searchParams }: { searchParams: { [key: string]: string } | undefined }) => {
  
   const {page = '1', ...queryParams} = searchParams;
@@ -80,7 +80,7 @@ const ParentListPage = async({ searchParams }: { searchParams: { [key: string]: 
     
 
  
-  const customTableRow = (item: Parent) => (
+  const customTableRow = (item: ParentList) => (
     <tr
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
