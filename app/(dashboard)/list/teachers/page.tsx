@@ -50,7 +50,7 @@ type TeacherList = Teacher & {subjects:Subject[]} & {classes:Class[]};
     },
   ];
   const page = async ({ searchParams }: { searchParams: { [key: string]: string } | undefined }) => {
-    const { page = '1', ...queryParams } = searchParams || {}; // default to '1' if undefined
+    const { page = '1', ...queryParams } = searchParams || {}; 
     const query: Prisma.TeacherWhereInput = {};
   
     if (queryParams) {
@@ -74,8 +74,8 @@ type TeacherList = Teacher & {subjects:Subject[]} & {classes:Class[]};
       }
     }
   
-    const currentPage = parseInt(page, 10) || 1; // convert page to a number, default to 1 if NaN
-    const skip = ITEM_PER_PAGE * (currentPage - 1); // calculate skip value
+    const currentPage = parseInt(page, 10) || 1; 
+    const skip = ITEM_PER_PAGE * (currentPage - 1); 
   
     const [teachers, teachersCount] = await prisma.$transaction([
       prisma.teacher.findMany({
@@ -93,15 +93,15 @@ type TeacherList = Teacher & {subjects:Subject[]} & {classes:Class[]};
           },
         },
         take: ITEM_PER_PAGE,
-        skip, // use calculated skip value
+        skip, 
       }),
       prisma.teacher.count({ where: query }),
     ]);
   
     const teachersData = teachers.map((teacher) => ({
       ...teacher,
-      classes: teacher.teacherClasses.map((tc) => tc.class.name), // Extract class names
-      subjects: teacher.teacherSubjects.map((ts) => ts.subject.name), // Extract subject names
+      classes: teacher.teacherClasses.map((tc) => tc.class.name), 
+      subjects: teacher.teacherSubjects.map((ts) => ts.subject.name), 
     }));
   
     console.log(teachersData);

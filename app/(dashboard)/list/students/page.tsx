@@ -2,125 +2,90 @@ import FormModal from '@/components/FormModal';
 import Pagination from '@/components/Pagination';
 import Table from '@/components/Table';
 import TableSearch from '@/components/TableSearch';
+import { ITEM_PER_PAGE } from '@/lib/constants';
 import { role } from '@/lib/data';
+import prisma from '@/lib/prisma';
+import { Class, Prisma, Student } from '@prisma/client';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
-const page = () => {
-  type Student = {
-    id: number;
-    name: string;
-    grade: string;
-    phone: string;
-    address: string;
-  };
+const columns = [
+  {
+    header: 'Info',
+    accessor: 'info',
+  },
+  {
+    header: 'ID',
+    accessor: 'id',
+  },
+  {
+    header: 'Grade',
+    accessor: 'grade',
+  },
+  {
+    header: 'Phone',
+    accessor: 'phone',
+  },
+  {
+    header: 'Address',
+    accessor: 'address',
+  },
+  {
+    header: 'Actions',
+    accessor: 'action',
+  },
+];
 
-  const studentsData: Student[] = [
-    {
-      id: 1,
-      name: "Alice Johnson",
-      grade: "10",
-      phone: "1234567890",
-      address: "456 Elm St, Anytown, USA",
-    },
-    {
-      id: 2,
-      name: "Bob Smith",
-      grade: "11",
-      phone: "1234567890",
-      address: "789 Pine St, Anytown, USA",
-    },
-    {
-      id: 3,
-      name: "Charlie Brown",
-      grade: "12",
-      phone: "1234567890",
-      address: "101 Maple St, Anytown, USA",
-    },
-    {
-      id: 4,
-      name: "David Wilson",
-      grade: "10",
-      phone: "1234567890",
-      address: "102 Oak St, Anytown, USA",
-    },
-    {
-      id: 5,
-      name: "Emma Davis",
-      grade: "11",
-      phone: "1234567890",
-      address: "103 Cedar St, Anytown, USA",
-    },
-    {
-      id: 6,
-      name: "Fiona Green",
-      grade: "12",
-      phone: "1234567890",
-      address: "104 Birch St, Anytown, USA",
-    },
-    {
-      id: 7,
-      name: "George Black",
-      grade: "10",
-      phone: "1234567890",
-      address: "105 Walnut St, Anytown, USA",
-    },
-    {
-      id: 8,
-      name: "Hannah White",
-      grade: "11",
-      phone: "1234567890",
-      address: "106 Spruce St, Anytown, USA",
-    },
-    {
-      id: 9,
-      name: "Ian Brown",
-      grade: "12",
-      phone: "1234567890",
-      address: "107 Fir St, Anytown, USA",
-    },
-    {
-      id: 10,
-      name: "Jasmine Blue",
-      grade: "10",
-      phone: "1234567890",
-      address: "108 Willow St, Anytown, USA",
-    },
-  ];
+type studentList = Student & {class: Class};
 
-  const columns = [
-    {
-      header: 'Info',
-      accessor: 'info',
-    },
-    {
-      header: 'ID',
-      accessor: 'id',
-    },
-    {
-      header: 'Grade',
-      accessor: 'grade',
-    },
-    {
-      header: 'Phone',
-      accessor: 'phone',
-    },
-    {
-      header: 'Address',
-      accessor: 'address',
-    },
-    {
-      header: 'Actions',
-      accessor: 'action',
-    },
-  ];
+const page = async({ searchParams }: { searchParams: { [key: string]: string } | undefined }) => {
+  
+  const {page = '1', ...queryParams} = searchParams;
+  const query: Prisma.StudentWhereInput = {};
+  const currentPage = parseInt(page, 10) || 1; 
+    const skip = ITEM_PER_PAGE * (currentPage - 1); 
 
-  const customTableRow = (item: Student) => (
+  if (queryParams) {
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (value !== undefined) {
+        switch (key) {
+          case "teacherId":
+            query.class = {
+              lessons: {
+                some: {
+                  teacherId: value,
+                },
+              },
+            };
+            break;
+          case "search":
+            query.name = { contains: value, mode: "insensitive" };
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  }
+
+  const [studentsData, studentsCount] = await prisma.$transaction([
+    prisma.student.findMany({
+      where: query,
+      include: {
+        class: true,
+      },
+      take: ITEM_PER_PAGE,
+      skip,
+    }),
+    prisma.student.count({ where: query }),
+  ]);
+
+  const customTableRow = (item: studentList) => (
     <tr key={item.id} className="bg-white odd:bg-slate-50 hover:bg-YellowLight transition duration-150">
       <td className="flex items-center gap-4 p-4">
         <Image
-          src="https://via.placeholder.com/40" // Replace with a valid student image URL if available
+          src={item.img || ''}
           alt={item.name}
           width={40}
           height={40}
@@ -130,8 +95,8 @@ const page = () => {
           <h3 className="font-semibold">{item.name}</h3>
         </div>
       </td>
-      <td className="px-5 py-3">{item.id}</td>
-      <td className="px-5 py-3">{item.grade}</td>
+      <td className="px-5 py-3">{item.username}</td>
+      <td className="px-5 py-3">{item.name}</td>
       <td className="px-5 py-3">{item.phone}</td>
       <td className="px-5 py-3">{item.address}</td>
       <td className="px-5 py-3">
@@ -169,7 +134,7 @@ const page = () => {
         </div>
       </div>
       <Table columns={columns} customTableRow={customTableRow} data={studentsData} />
-      <Pagination />
+      <Pagination page={currentPage} count={studentsCount}/>
     </div>
   );
 };
