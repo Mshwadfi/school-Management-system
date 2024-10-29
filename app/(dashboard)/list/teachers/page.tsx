@@ -159,7 +159,7 @@ type TeacherList = Teacher & {subjects:Subject[]} & {classes:Class[]};
           </div>
         </div>
         <Table columns={columns} customTableRow={customTableRow} data={teachersData} />
-        <Pagination page={currentPage} count={teachersCount} />
+        <Pagination initialPage={+(page)} count={teachersCount} />
       </div>
     );
   };

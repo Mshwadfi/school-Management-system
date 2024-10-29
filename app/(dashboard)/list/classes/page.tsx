@@ -118,7 +118,7 @@ const ClassListPage = async({searchParams}:{searchParams:{[key:string]: string}}
       {/* LIST */}
       <Table columns={columns} customTableRow={renderRow} data={classesData} />
       {/* PAGINATION */}
-      <Pagination initialPage={page} count={classesCount}/>
+      <Pagination initialPage={+(page)} count={classesCount}/>
     </div>
   );
 };

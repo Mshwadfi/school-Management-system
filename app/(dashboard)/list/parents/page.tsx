@@ -39,7 +39,7 @@ const columns = [
     : []),
 ];
 
-const ParentListPage = async({ searchParams }: { searchParams: { [key: string]: string } | undefined }) => {
+const ParentListPage = async({ searchParams }: { searchParams: { [key: string]: string  | undefined }}) => {
  
   const {page = '1', ...queryParams} = searchParams;
   const query: Prisma.ParentWhereInput = {};
@@ -131,7 +131,7 @@ const ParentListPage = async({ searchParams }: { searchParams: { [key: string]: 
       {/* LIST */}
       <Table columns={columns} customTableRow={customTableRow} data={parentsData} />
       {/* PAGINATION */}
-      <Pagination initialPage={page} count={parentsCount}/>
+      <Pagination initialPage={+(page)} count={parentsCount}/>
     </div>
   );
 };

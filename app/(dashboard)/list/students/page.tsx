@@ -39,7 +39,7 @@ const columns = [
 
 type studentList = Student & {class: Class};
 
-const page = async({ searchParams }: { searchParams: { [key: string]: string } | undefined }) => {
+const page = async({ searchParams }: { searchParams: { [key: string]: string  | undefined }}) => {
   
   const {page = '1', ...queryParams} = searchParams;
   const query: Prisma.StudentWhereInput = {};
@@ -134,7 +134,7 @@ const page = async({ searchParams }: { searchParams: { [key: string]: string } |
         </div>
       </div>
       <Table columns={columns} customTableRow={customTableRow} data={studentsData} />
-      <Pagination page={currentPage} count={studentsCount}/>
+      <Pagination initialPage={+(page)} count={studentsCount}/>
     </div>
   );
 };

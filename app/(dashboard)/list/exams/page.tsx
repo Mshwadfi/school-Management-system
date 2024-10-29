@@ -3,7 +3,7 @@ import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import { ITEM_PER_PAGE } from "@/lib/constants";
-import { examsData, role } from "@/lib/data";
+import { role } from "@/lib/data";
 import prisma from "@/lib/prisma";
 import { Class, Exam, Prisma, Subject, Teacher } from "@prisma/client";
 import Image from "next/image";
@@ -136,7 +136,7 @@ const ExamListPage = async({
       {/* LIST */}
       <Table columns={columns} customTableRow={renderRow} data={examsData} />
       {/* PAGINATION */}
-      <Pagination initialPage={page} count={examsCount}/>
+      <Pagination initialPage={+(page)} count={examsCount}/>
     </div>
   );
 };

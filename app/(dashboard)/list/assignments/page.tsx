@@ -1,19 +1,20 @@
 // import FormModal from "@/components/FormModal";
+import FormModal from "@/components/FormModal";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import {
-  assignmentsData,
-  role,
-} from "@/lib/data";
+import { ITEM_PER_PAGE } from "@/lib/constants";
+import { role} from "@/lib/data";
+import prisma from "@/lib/prisma";
+import { Assignment, Subject, Class, Teacher, Prisma } from "@prisma/client";
 import Image from "next/image";
 
-type Assignment = {
-  id: number;
-  subject: string;
-  class: string;
-  teacher: string;
-  dueDate: string;
+type AssignmentList = Assignment & {
+  lesson: {
+    subject: Subject;
+    class: Class;
+    teacher: Teacher;
+  };
 };
 
 const columns = [
@@ -41,24 +42,75 @@ const columns = [
   },
 ];
 
-const AssignmentListPage = () => {
-  const renderRow = (item: Assignment) => (
+const AssignmentListPage = async ({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) => {
+
+  const {page = '1' , ...queryParams} = searchParams;
+  const currentPage = parseInt(page, 10) || 1; 
+    const skip = ITEM_PER_PAGE * (currentPage - 1);
+    const query: Prisma.AssignmentWhereInput = {};
+
+    query.lesson = {};
+
+  if (queryParams) {
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (value !== undefined) {
+        switch (key) {
+          case "classId":
+            query.lesson.classId = value;
+            break;
+          case "teacherId":
+            query.lesson.teacherId = value;
+            break;
+          case "search":
+            query.lesson.subject = {
+              name: { contains: value, mode: "insensitive" },
+            };
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  }
+
+  const [assignmentsData, assignmentsCount] = await prisma.$transaction([
+    prisma.assignment.findMany({
+      where: query,
+      include: {
+        lesson: {
+          select: {
+            subject: { select: { name: true } },
+            teacher: { select: { name: true, surname: true } },
+            class: { select: { name: true } },
+          },
+        },
+      },
+      take: ITEM_PER_PAGE,
+      skip,
+    }),
+    prisma.assignment.count({ where: query }),
+  ]);
+  const renderRow = (item: AssignmentList) => (
     <tr
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
     >
-      <td className="flex items-center gap-4 p-4">{item.subject}</td>
-      <td>{item.class}</td>
-      <td className="hidden md:table-cell">{item.teacher}</td>
-      <td className="hidden md:table-cell">{item.dueDate}</td>
+      <td className="flex items-center gap-4 p-4">{item.lesson.subject.name}</td>
+      <td>{item.lesson.class.name}</td>
+      <td className="hidden md:table-cell">{item.lesson.teacher.name}</td>
+      <td className="hidden md:table-cell">{new Intl.DateTimeFormat("en-US").format(item.dueDate)}</td>
       <td>
         <div className="flex items-center gap-2">
-          {/* {role === "admin" || role === "teacher" && (
+          {role === "admin" || role === "teacher" && (
             <>
               <FormModal table="assignment" type="update" data={item} />
               <FormModal table="assignment" type="delete" id={item.id} />
             </>
-          )} */}
+          )}
         </div>
       </td>
     </tr>
@@ -80,14 +132,14 @@ const AssignmentListPage = () => {
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {/* {role === "admin" || role === "teacher" && <FormModal table="assignment" type="create" />} */}
+            {role === "admin" || role === "teacher" && <FormModal table="assignment" type="create" />}
           </div>
         </div>
       </div>
       {/* LIST */}
       <Table columns={columns} customTableRow={renderRow} data={assignmentsData} />
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination initialPage={+(page)} count={assignmentsCount}/>
     </div>
   );
 };

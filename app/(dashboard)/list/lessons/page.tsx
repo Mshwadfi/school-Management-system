@@ -30,7 +30,7 @@ const columns = [
   },
 ];
 
-const LessonListPage = async({ searchParams }: { searchParams: { [key: string]: string } | undefined }) => {
+const LessonListPage = async({ searchParams, }: { searchParams: { [key: string]: string  | undefined }}) => {
 
   const {page = '1', ...queryParams} = searchParams;
   const currentPage = parseInt(page, 10) || 1; 
@@ -116,7 +116,7 @@ const LessonListPage = async({ searchParams }: { searchParams: { [key: string]: 
       {/* LIST */}
       <Table columns={columns} customTableRow={renderRow} data={lessonsData} />
       {/* PAGINATION */}
-      <Pagination initialPage={page} count={lessonsCount}/>
+      <Pagination initialPage={+(page)} count={lessonsCount}/>
     </div>
   );
 };
