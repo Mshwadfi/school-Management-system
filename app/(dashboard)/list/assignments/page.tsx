@@ -4,8 +4,9 @@ import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import { ITEM_PER_PAGE } from "@/lib/constants";
-import { role} from "@/lib/data";
+import { getUserRole} from "@/lib/data";
 import prisma from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { Assignment, Subject, Class, Teacher, Prisma } from "@prisma/client";
 import Image from "next/image";
 
@@ -50,8 +51,11 @@ const AssignmentListPage = async ({
 
   const {page = '1' , ...queryParams} = searchParams;
   const currentPage = parseInt(page, 10) || 1; 
-    const skip = ITEM_PER_PAGE * (currentPage - 1);
-    const query: Prisma.AssignmentWhereInput = {};
+  const skip = ITEM_PER_PAGE * (currentPage - 1);
+  const query: Prisma.AssignmentWhereInput = {};
+  const role = await getUserRole();
+  const { userId: currentUserId = null } = await auth();
+
 
     query.lesson = {};
 
@@ -75,6 +79,34 @@ const AssignmentListPage = async ({
         }
       }
     }
+  }
+
+  switch (role) {
+    case "admin":
+      break;
+    case "teacher":
+      query.lesson.teacherId = currentUserId!;
+      break;
+    case "student":
+      query.lesson.class = {
+        students: {
+          some: {
+            id: currentUserId!,
+          },
+        },
+      };
+      break;
+    case "parent":
+      query.lesson.class = {
+        students: {
+          some: {
+            parentId: currentUserId!,
+          },
+        },
+      };
+      break;
+    default:
+      break;
   }
 
   const [assignmentsData, assignmentsCount] = await prisma.$transaction([

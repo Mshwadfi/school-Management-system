@@ -3,8 +3,9 @@ import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import { ITEM_PER_PAGE } from "@/lib/constants";
-import { role } from "@/lib/data";
+import { getUserRole } from "@/lib/data";
 import prisma from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { Class, Exam, Prisma, Subject, Teacher } from "@prisma/client";
 import Image from "next/image";
 
@@ -53,6 +54,9 @@ const ExamListPage = async({
       const currentPage = parseInt(page, 10) || 1; 
       const skip = ITEM_PER_PAGE * (currentPage - 1);
       query.lesson = {};
+      const role = await getUserRole();
+      const { userId: currentUserId = null } = await auth();
+      
       if (queryParams) {
         for (const [key, value] of Object.entries(queryParams)) {
           if (value !== undefined) {
@@ -73,6 +77,35 @@ const ExamListPage = async({
             }
           }
         }
+      }
+
+      switch (role) {
+        case "admin":
+          break;
+        case "teacher":
+          query.lesson.teacherId = currentUserId!;
+          break;
+        case "student":
+          query.lesson.class = {
+            students: {
+              some: {
+                id: currentUserId!,
+              },
+            },
+          };
+          break;
+        case "parent":
+          query.lesson.class = {
+            students: {
+              some: {
+                parentId: currentUserId!,
+              },
+            },
+          };
+          break;
+    
+        default:
+          break;
       }
 
       const [examsData, examsCount] = await prisma.$transaction([

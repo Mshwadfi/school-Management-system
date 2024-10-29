@@ -7,22 +7,25 @@ const matchers = Object.keys(routeAccessMap).map((route) => ({
   allowedRoles: routeAccessMap[route],
 }));
 
-console.log(matchers);
+console.log("Matchers:", matchers);
 
-export default clerkMiddleware((auth, req) => {
-  // if (isProtectedRoute(req)) auth().protect()
-
-  const { sessionClaims } = auth();
-
-  const role = (sessionClaims?.metadata as { role?: string })?.role;
-
-  for (const { matcher, allowedRoles } of matchers) {
-    if (matcher(req) && !allowedRoles.includes(role!)) {
-      return NextResponse.redirect(new URL(`/${role}`, req.url));
+export default clerkMiddleware(async (auth, req) => {
+    const { sessionClaims } = await auth(); // Await auth to ensure sessionClaims is populated
+    console.log("Session Claims:", sessionClaims);
+    const role = (sessionClaims?.metadata as { role?: string })?.role;
+    console.log("User Role:", role);
+  
+    if (role) {
+      for (const { matcher, allowedRoles } of matchers) {
+        if (matcher(req) && !allowedRoles.includes(role)) {
+          return NextResponse.redirect(new URL(`/${role}`, req.url));
+        }
+      }
+    } else {
+      console.warn("User role is undefined. No matching or redirection will occur.");
     }
-  }
-});
-
+  });
+  
 export const config = {
   matcher: [
     // Skip Next.js internals and all static files, unless found in search params

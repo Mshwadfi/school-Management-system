@@ -4,9 +4,10 @@ import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import { ITEM_PER_PAGE } from "@/lib/constants";
 import {
-  role,
+  getUserRole,
 } from "@/lib/data";
 import prisma from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { Prisma } from "@prisma/client";
 import Image from "next/image";
 
@@ -67,7 +68,9 @@ const ResultListPage = async ({
   const currentPage = parseInt(page, 10) || 1; 
   const skip = ITEM_PER_PAGE * (currentPage - 1);
   const query: Prisma.ResultWhereInput = {};
-
+  const role = await getUserRole();
+  const { userId: currentUserId = null } = await auth();
+  
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
       if (value !== undefined) {
@@ -86,6 +89,29 @@ const ResultListPage = async ({
         }
       }
     }
+  }
+
+  switch (role) {
+    case "admin":
+      break;
+    case "teacher":
+      query.OR = [
+        { exam: { lesson: { teacherId: currentUserId! } } },
+        { assignment: { lesson: { teacherId: currentUserId! } } },
+      ];
+      break;
+
+    case "student":
+      query.studentId = currentUserId!;
+      break;
+
+    case "parent":
+      query.student = {
+        parentId: currentUserId!,
+      };
+      break;
+    default:
+      break;
   }
 
   const [resultsData, resultsCount] = await prisma.$transaction([

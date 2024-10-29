@@ -3,8 +3,9 @@ import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import { ITEM_PER_PAGE } from "@/lib/constants";
-import { role } from "@/lib/data";
+import { getUserRole } from "@/lib/data";
 import prisma from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 import { Announcement, Class, Prisma } from "@prisma/client";
 import Image from "next/image";
 
@@ -40,6 +41,8 @@ const AnnouncementListPage = async({
   const currentPage = parseInt(page, 10) || 1; 
   const skip = ITEM_PER_PAGE * (currentPage - 1);
   const query: Prisma.AnnouncementWhereInput = {};
+  const role = await getUserRole();
+  const { userId: currentUserId = null } = await auth();
 
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
@@ -54,6 +57,19 @@ const AnnouncementListPage = async({
       }
     }
   }
+
+  const roleConditions = {
+    teacher: { lessons: { some: { teacherId: currentUserId! } } },
+    student: { students: { some: { id: currentUserId! } } },
+    parent: { students: { some: { parentId: currentUserId! } } },
+  };
+
+  query.OR = [
+    { classId: null },
+    {
+      class: roleConditions[role as keyof typeof roleConditions] || {},
+    },
+  ];
 
   const [announcementsData, announcementsCount] = await prisma.$transaction([
     prisma.announcement.findMany({

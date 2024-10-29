@@ -3,7 +3,7 @@ import Pagination from '@/components/Pagination';
 import Table from '@/components/Table';
 import TableSearch from '@/components/TableSearch';
 import { ITEM_PER_PAGE } from '@/lib/constants';
-import { role } from '@/lib/data';
+import { getUserRole } from '@/lib/data';
 import prisma from '@/lib/prisma';
 import { Class, Prisma, Student } from '@prisma/client';
 import Image from 'next/image';
@@ -44,7 +44,8 @@ const page = async({ searchParams }: { searchParams: { [key: string]: string  | 
   const {page = '1', ...queryParams} = searchParams;
   const query: Prisma.StudentWhereInput = {};
   const currentPage = parseInt(page, 10) || 1; 
-    const skip = ITEM_PER_PAGE * (currentPage - 1); 
+  const skip = ITEM_PER_PAGE * (currentPage - 1); 
+  const role = await getUserRole();
 
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
