@@ -2,14 +2,13 @@ import FormModal from "@/components/FormModal";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { role, subjectsData } from "@/lib/data";
+import { ITEM_PER_PAGE } from "@/lib/constants";
+import { role } from "@/lib/data";
+import prisma from "@/lib/prisma";
+import { Prisma, Subject, Teacher, TeacherSubject } from "@prisma/client";
 import Image from "next/image";
 
-type Subject = {
-  id: number;
-  name: string;
-  teachers: string[];
-};
+type SubjectList = Subject & { teacherSubjects: TeacherSubject[] & {teachers: Teacher[]} };
 
 const columns = [
   {
@@ -27,14 +26,58 @@ const columns = [
   },
 ];
 
-const SubjectListPage = () => {
-  const renderRow = (item: Subject) => (
+const SubjectListPage = async({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) => {
+
+  const {page = '1' , ...queryParams} = searchParams;
+  const currentPage = parseInt(page, 10) || 1; 
+  const skip = ITEM_PER_PAGE * (currentPage - 1);
+  const query: Prisma.SubjectWhereInput = {};
+
+  if (queryParams) {
+    for (const [key, value] of Object.entries(queryParams)) {
+      if (value !== undefined) {
+        switch (key) {
+          case "search":
+            query.name = { contains: value, mode: "insensitive" };
+            break;
+          default:
+            break;
+        }
+      }
+    }
+  }
+
+  const [subjectsData, subjectsCount] = await prisma.$transaction([
+    prisma.subject.findMany({
+      where: query,
+      include: {
+        teacherSubjects:{
+          include: {
+            teacher: true,
+          }
+        }
+      },
+      take: ITEM_PER_PAGE,
+      skip,
+    }),
+    prisma.subject.count({ where: query }),
+  ]);
+
+
+  const renderRow = (item: SubjectList) => (
     <tr
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-PurpleLight"
     >
       <td className="flex items-center gap-4 p-4">{item.name}</td>
-      <td className="hidden md:table-cell">{item.teachers.join(",")}</td>
+      <td className="hidden md:table-cell">
+  {item.teacherSubjects.teachers?.map((teacher) => teacher.name).join(", ")}
+</td>
+
       <td>
         <div className="flex items-center gap-2">
           {role === "admin" && (
@@ -69,7 +112,7 @@ const SubjectListPage = () => {
       {/* LIST */}
       <Table columns={columns} customTableRow={renderRow} data={subjectsData} />
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination initialPage={+(page)} count = {subjectsCount}/>
     </div>
   );
 };
