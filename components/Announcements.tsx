@@ -32,6 +32,7 @@ const Announcements = async () => {
     orderBy: { date: "desc" },
     where: whereCondition,
   });
+  console.log(announcements);
 
   return (
     <div className="bg-white p-4 rounded-md">

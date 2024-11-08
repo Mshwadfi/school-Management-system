@@ -1,4 +1,5 @@
 import Announcements from "@/components/Announcements";
+import AttendanceChart from "@/components/AttendanceChart";
 import AttendanceContainer from "@/components/AttendanceContainer";
 import BoysGirlsChart from "@/components/BoysGirlsChart";
 import EventCalendarContainer from "@/components/EventCalenderContainer";
@@ -27,7 +28,7 @@ const AdminPage = ({
                     <BoysGirlsChart />
                 </div>
                 <div className="w-full lg:w-2/3 h-[450px]">
-                    <AttendanceContainer />
+                    <AttendanceChart />
                 </div>
             </div>
             <div className="h-[500px] w-full">
