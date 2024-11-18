@@ -13,6 +13,7 @@ const StudentForm = dynamic(()=> import('./forms/StudentForm'), {
 })
 
 const formsObject: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: (type:'update' | 'create', data?: any)=>JSX.Element;
 } = {
   teacher: (type, data)=> <TeacherForm type={type} data={data} />,
@@ -39,6 +40,7 @@ const FormModal = ({
     | "event"
     | "announcement";
   type: "create" | "update" | "delete";
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
   id?: number;
 }) => {
@@ -52,14 +54,21 @@ const FormModal = ({
       ? "bg-Sky"
       : "bg-Purple";
 
-  const Form = ()=>{
-    return type === 'delete' && id? 
-    <div className="flex flex-col gap-4 items-center">
-      <h2>Are You Suru You Want To Delete This Item?</h2>
-      <button className="py-3 px-5 bg-red-800 rounded-md text-white">Delete</button>
-    </div> : 
-    formsObject[table](type, data);
-  }
+      const Form = () => {
+        if (type === "delete" && id) {
+          return (
+            <div className="flex flex-col gap-4 items-center">
+              <h2>Are You Sure You Want To Delete This Item?</h2>
+              <button className="py-3 px-5 bg-red-800 rounded-md text-white">
+                Delete
+              </button>
+            </div>
+          );
+        }
+      
+        return formsObject[table](type as "create" | "update", data);
+      };
+      
  
   return (
     <>
