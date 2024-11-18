@@ -11,7 +11,7 @@ type Parent = {
   address: string;
   students: string[];
 };
-export const parentsData:Parent[] = [
+const parentsData:Parent[] = [
   {
     id: 1,
     name: "John Doe",
