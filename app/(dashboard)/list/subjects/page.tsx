@@ -33,9 +33,11 @@ const SubjectListPage = () => {
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-PurpleLight"
     >
-      <td className="flex items-center gap-4 p-4">{item.name}</td>
-      <td className="hidden md:table-cell">{item.teachers.join(",")}</td>
-      <td>
+      <td className="flex items-center gap-4 px-4 py-2 max-w-xs truncate">
+        {item.name}
+      </td>
+      <td className="hidden md:table-cell px-4 py-2">{item.teachers.join(",")}</td>  
+      <td className="px-4 py-2 w-32">
         <div className="flex items-center gap-2">
           {role === "admin" && (
             <>
@@ -47,6 +49,7 @@ const SubjectListPage = () => {
       </td>
     </tr>
   );
+  
 
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -69,7 +72,7 @@ const SubjectListPage = () => {
       {/* LIST */}
       <Table columns={columns} customTableRow={renderRow} data={subjectsData} />
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination items={subjectsData.length}/>
     </div>
   );
 };

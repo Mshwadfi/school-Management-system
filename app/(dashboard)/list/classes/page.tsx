@@ -1,8 +1,9 @@
 // import FormModal from "@/components/FormModal";
+import FormModal from "@/components/FormModal";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { classesData } from "@/lib/data";
+import { classesData, role } from "@/lib/data";
 import Image from "next/image";
 
 type Class = {
@@ -45,22 +46,25 @@ const ClassListPage = () => {
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
     >
-      <td className="flex items-center gap-4 p-4">{item.name}</td>
-      <td className="hidden md:table-cell">{item.capacity}</td>
-      <td className="hidden md:table-cell">{item.grade}</td>
-      <td className="hidden md:table-cell">{item.supervisor}</td>
-      <td>
+      <td className="flex items-center gap-4 px-4 py-2 max-w-xs truncate">
+        {item.name}
+      </td>
+      <td className="hidden md:table-cell px-4 py-2">{item.capacity}</td>
+      <td className="hidden md:table-cell px-4 py-2">{item.grade}</td>
+      <td className="hidden md:table-cell px-4 py-2">{item.supervisor}</td>
+      <td className="px-4 py-2 w-32">
         <div className="flex items-center gap-2">
-          {/* {role === "admin" && (
+          {role === "admin" && (
             <>
               <FormModal table="class" type="update" data={item} />
               <FormModal table="class" type="delete" id={item.id} />
             </>
-          )} */}
+          )}
         </div>
       </td>
     </tr>
   );
+  
 
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -76,14 +80,14 @@ const ClassListPage = () => {
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {/* {role === "admin" && <FormModal table="class" type="create" />} */}
+            {role === "admin" && <FormModal table="class" type="create" />}
           </div>
         </div>
       </div>
       {/* LIST */}
       <Table columns={columns} customTableRow={renderRow} data={classesData} />
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination items={classesData.length}/>
     </div>
   );
 };

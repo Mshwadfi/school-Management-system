@@ -82,30 +82,33 @@ const ParentListPage = () => {
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
     >
-      <td className="flex items-center gap-4 p-4">
+      <td className="flex items-center gap-4 px-4 py-2 max-w-xs truncate">
         <div className="flex flex-col">
           <h3 className="font-semibold">{item.name}</h3>
-          <p className="text-xs text-gray-500">{/* Email can be added if needed */}</p>
+          <p className="text-xs text-gray-500">
+          </p>
         </div>
       </td>
-      <td className="hidden md:table-cell">{item.students.join(", ")}</td>
-      <td className="hidden lg:table-cell">{item.phone}</td>
-      <td className="hidden lg:table-cell">{item.address}</td>
-      <td>
-      <div className="flex items-center gap-2">
+      <td className="hidden md:table-cell px-4 py-2">{item.students.join(", ")}</td>
+      <td className="hidden lg:table-cell px-4 py-2">{item.phone}</td>
+  
+      <td className="hidden lg:table-cell px-4 py-2">{item.address}</td>
+  
+      <td className="px-4 py-2 w-32">
+        <div className="flex items-center gap-2">
           <Link href={`/list/teachers/${item.id}`}>
             <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaSky">
               <Image src="/view.png" alt="" width={16} height={16} />
             </button>
           </Link>
-            <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaPurple">
-              <Image src="/delete.png" alt="" width={16} height={16} />
-             </button>
-          
+          <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaPurple">
+            <Image src="/delete.png" alt="" width={16} height={16} />
+          </button>
         </div>
       </td>
     </tr>
   );
+  
 
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -128,7 +131,7 @@ const ParentListPage = () => {
       {/* LIST */}
       <Table columns={columns} customTableRow={customTableRow} data={parentsData} />
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination items={parentsData.length}/>
     </div>
   );
 };

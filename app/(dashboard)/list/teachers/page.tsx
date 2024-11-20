@@ -236,7 +236,7 @@ const page = () => {
         </div>
       </div>
       <Table columns={columns} customTableRow={customTableRow} data={teachersData} />
-      <Pagination />
+      <Pagination items={teachersData.length}/>
     </div>
   );
 };
